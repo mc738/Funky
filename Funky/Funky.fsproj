@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Core\Common.fs" />
+        <Compile Include="Core\Parsing.fs" />
+        <Compile Include="Core\Input.fs" />
+        <Compile Include="Core\BuiltIns.fs" />
+        <Compile Include="Core\Eval.fs" />
+        <Compile Include="Core\Exec.fs" />
+        <Compile Include="Core\Operations.fs" />
+        <Compile Include="Core\Pipes.fs" />
+        <Compile Include="Engine.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FSharp.Compiler.Service" Version="38.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\FUtil\FUtil\FUtil.fsproj" />
+    </ItemGroup>
+
+</Project>
