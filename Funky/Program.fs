@@ -6,6 +6,8 @@ open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Interactive.Shell
 open Funky.Core
 open Funky.Core.Input
+open Funky.Core.Operations.Operations
+open Funky.Core.Parsing
 
 module Input =
 
@@ -129,14 +131,52 @@ let rec repl () =
     repl ()
 
 
+let testPrint input =
+    let tokens = parse [ "echo" ] [ "post" ] input
+    
+    let remaining =
+        tokens
+        |> List.fold (fun pos t ->
+            match t with
+            | Token.Operation op ->
+                match op with
+                | OperationToken.Program p ->
+                    let args = if p.Args.Length > 0 then sprintf " %s" (String.Join(" ", p.Args)) else ""
+                    Console.Write(sprintf "\u001b[33m%s\u001b[0m%s" p.Name args)
+                    pos + (args.Length + 1 + p.Name.Length)
+                | OperationToken.BuiltIn b ->
+                    let args = if b.Args.Length > 0 then sprintf " %s" (String.Join(" ", b.Args)) else ""
+                    Console.Write(sprintf "\u001b[35m%s\u001b[0m%s" b.Name args)
+                    pos + (args.Length + 1 + b.Name.Length)
+                | OperationToken.InlineFunction f ->
+                    Console.Write(sprintf "\u001b[34m%s\u001b[0m" f.Function)
+                    pos + f.Function.Length
+                | OperationToken.NamedFunction n ->
+                    let args = if n.Args.Length > 0 then sprintf " %s" (String.Join(" ", n.Args)) else ""
+                    Console.Write(sprintf "\u001b[34m%s\u001b[0m%s" n.Name args)
+                    pos + (args.Length + 1 + n.Name.Length)
+            | Token.Operator op ->
+                match op with
+                | OperatorToken.FunctionOperator -> Console.Write("\u001b[32m|>\u001b[0m"); pos + 2 
+                | OperatorToken.PipeOperator -> Console.Write("\u001b[32m|\u001b[0m"); pos + 1
+                | OperatorToken.OutputOperator -> Console.Write("\u001b[32m>\u001b[0m"); pos + 1
+            | Token.Whitespace -> Console.Write(" "); pos + 1
+            ) 0
+        
+    remaining
+
 [<EntryPoint>]
 let main argv =
    
-    let test = "echo hello | hash |> (fun s -> s.ToUpperCase()) |> post www.example.com > result.txt "
+    let test = "echo hello | hash |> (fun s -> s.ToUpperCase()) |> post www.example.com"
+   
+    let remaining = testPrint (test |> Array.ofSeq)
     
-    let r = Parsing.parse [ "echo" ] [ "post" ] (test |> Array.ofSeq)
+    printfn "Remaining: %i" remaining
+     
+    //let r = Parsing.parse [ "echo" ] [ "post" ] (test |> Array.ofSeq)
     
-    printfn "********* %A" r
+    //printfn "********* %A" r
      
     //printfn "\u001b[32mWelcome to Funky! A shell written in F#.\u001b[0m"
     //Directory.SetCurrentDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal))
